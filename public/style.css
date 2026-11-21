@@ -510,6 +510,7 @@ code, pre, .mono {
   background: #1e293b;
   border-radius: 999px;
   overflow: visible;
+  margin-top: 16px;
   margin-bottom: 10px;
 }
 
