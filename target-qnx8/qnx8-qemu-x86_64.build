@@ -1,0 +1,54 @@
+# QNX Neutrino 8.0 Instrumented SMP Boot Image (IFS) for QEMU x86_64
+# Builds with: mkifs -v qnx8-qemu-x86_64.build build/x86_64/qnx8-brakewire.ifs
+
+[virtual=x86_64,bios +compress] boot = {
+    startup-x86 -v
+    PATH=/proc/boot:/bin:/usr/bin LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib procnto-smp-instr -v
+}
+
+[+script] startup-script = {
+    procmgr_symlink ../../proc/boot/libc.so.6 /usr/lib/ldqnx-64.so.2
+
+    display_msg "=== QNX BrakeWire ADAS 8.0 (ASIL-D Hard-RT Target) ==="
+
+    slogger2 -s 64k -c 8 &
+    waitfor /dev/slog2 4
+
+    devc-ser8250 -e -b115200 3f8,4 &
+    waitfor /dev/ser1 4
+    reopen /dev/ser1
+
+    pps -m /pps &
+    waitfor /pps 4
+
+    # Launch ASIL-D Brake-by-Wire Resource Manager (SCHED_FIFO 63 on CPU0)
+    /proc/boot/brakewire_adas &
+    waitfor /dev/name/local/qnx/brakewire 4
+
+    # Launch CAN-FD Sensor Receiver & Plausibility Voter (SCHED_FIFO 60)
+    /proc/boot/canfd_sensor_rx --spoof &
+
+    [+session] /proc/boot/ksh &
+}
+
+[type=link] /bin/sh=/proc/boot/ksh
+[type=link] /dev/console=/dev/ser1
+
+# QNX 8.0 runtime libraries
+libc.so.6
+libm.so.3
+libslog2.so.1
+libpps.so.1
+
+[data=copy]
+slogger2
+slog2info
+devc-ser8250
+pps
+pidin
+tracelogger
+ksh
+
+# QNX BrakeWire ADAS binaries
+brakewire_adas=build/x86_64/brakewire_adas
+canfd_sensor_rx=build/x86_64/canfd_sensor_rx

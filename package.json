@@ -1,0 +1,30 @@
+{
+  "name": "qnx-brakewire-adas",
+  "version": "1.0.0",
+  "description": "ISO 26262 ASIL-D Brake-by-Wire, CAN-FD CRC-16 Validator & LiDAR/Radar Sensor Fusion Digital Twin for QNX Neutrino RTOS 8.0",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "brakewire-cli": "./cli/brakewire-cli.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "cli": "node cli/brakewire-cli.mjs",
+    "sync-engine": "node -e \"import fs from 'node:fs'; for (const f of ['canfdValidator.js','adasEngine.js','iso26262Audit.js']) fs.copyFileSync('src/'+f, 'public/engine/'+f); console.log('Engine synced to public/engine/');\""
+  },
+  "keywords": [
+    "qnx",
+    "qnx-8",
+    "adas",
+    "aeb",
+    "brake-by-wire",
+    "iso-26262",
+    "asil-d",
+    "can-fd",
+    "automotive",
+    "real-time"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

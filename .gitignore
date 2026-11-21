@@ -1,0 +1,10 @@
+node_modules/
+.vercel/
+target-qnx8/build/
+target-qnx8/build-*/
+demo_build/
+verify_shots/
+*.mp4
+*.wav
+*.kev
+.DS_Store
