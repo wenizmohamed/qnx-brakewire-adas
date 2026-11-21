@@ -8,3 +8,5 @@ verify_shots/
 *.wav
 *.kev
 .DS_Store
+
+.vercel
