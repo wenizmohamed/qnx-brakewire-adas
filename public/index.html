@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QNX BrakeWire ADAS — ISO 26262 ASIL-D Brake-by-Wire &amp; Sensor Fusion Digital Twin</title>
-  <meta name="description" content="Deterministic ISO 26262 ASIL-D Autonomous Emergency Braking, CAN-FD CRC-16 Validator &amp; QNX Neutrino 8.0 MsgSendv() / SCHED_FIFO 63 Telemetry Workbench.">
+  <title>QNX BrakeWire ADAS - Real-Time Emergency Braking &amp; Highway Crash Simulator</title>
+  <meta name="description" content="Real-time QNX Neutrino 8.0 emergency braking digital twin proving microsecond response time, radar spoof protection, and ISO 26262 ASIL-D safety." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -30,20 +30,20 @@
             <span class="tag-pill tag-qnx">QNX Neutrino 8.0</span>
             <span class="tag-pill tag-asil">ISO 26262 ASIL-D</span>
           </div>
-          <p class="brand-sub">Deterministic Brake-by-Wire, CAN-FD CRC-16 Plausibility Voter &amp; Zero-Copy <code>MsgSendv()</code> Workbench</p>
+          <p class="brand-sub">Real-Time Emergency Braking, Radar Spoof Protection &amp; Highway Crash Simulator</p>
         </div>
       </div>
 
       <div class="topbar-actions">
         <div id="globalVerdictPill" class="verdict-pill verdict-pass" role="status" aria-live="polite">
           <span class="verdict-dot"></span>
-          <span id="globalVerdictText">ASIL-D PASS (6/6)</span>
+          <span id="globalVerdictText">ALL SAFETY CHECKS PASS (6/6)</span>
         </div>
-        <button id="btnExportJson" class="btn btn-outline-dark" type="button" title="Download ISO 26262 Audit JSON">
-          Export JSON
+        <button id="btnExportJson" class="btn btn-outline-dark" type="button" title="Download ISO 26262 Safety Audit JSON">
+          Export Safety JSON
         </button>
         <button id="btnExportSarif" class="btn btn-amber" type="button" title="Download SARIF 2.1.0 Safety Gate Report">
-          Export SARIF 2.1.0
+          Export Audit (SARIF)
         </button>
         <a class="btn btn-ghost-dark" href="https://github.com/wenizmohamed/qnx-brakewire-adas" target="_blank" rel="noopener noreferrer">
           GitHub
@@ -54,9 +54,9 @@
 
   <main class="shell">
     <!-- Scenario Selector Bar -->
-    <section class="scenario-strip" aria-label="Automotive ADAS Scenarios">
+    <section class="scenario-strip" aria-label="Driving Safety Scenarios">
       <div class="strip-head">
-        <span class="eyebrow">01 / AUTOMOTIVE SCENARIOS</span>
+        <span class="eyebrow">01 / DRIVING SAFETY SCENARIOS</span>
         <span id="scenarioEnvBadge" class="env-badge">Daylight 3-Lane Expressway</span>
       </div>
       <div id="scenarioTabs" class="scenario-tabs" role="tablist"></div>
@@ -70,8 +70,8 @@
         <div class="twin-hud-top">
           <div class="hud-left">
             <span class="live-dot" id="simLiveDot"></span>
-            <span class="hud-title">LIVE HIGHWAY AEB &amp; LIDAR/RADAR DIGITAL TWIN</span>
-            <span id="hudOsBadge" class="hud-badge hud-badge-qnx">QNX SCHED_FIFO 63</span>
+            <span class="hud-title">LIVE HIGHWAY EMERGENCY BRAKING SIMULATOR</span>
+            <span id="hudOsBadge" class="hud-badge hud-badge-qnx">QNX Real-Time Braking</span>
           </div>
           <div class="hud-right">
             <span id="hudClockReadout" class="hud-mono">t = 0.00 s</span>
@@ -81,25 +81,25 @@
         </div>
 
         <div class="canvas-wrap">
-          <canvas id="highwayCanvas" width="960" height="420" aria-label="Interactive Highway AEB LiDAR and Radar Digital Twin"></canvas>
+          <canvas id="highwayCanvas" width="960" height="420" aria-label="Interactive Highway Emergency Braking Simulator"></canvas>
         </div>
 
         <!-- Microsecond IPC Budget Bar -->
         <div class="budget-panel">
           <div class="budget-header">
             <div class="budget-title-group">
-              <span class="budget-label">QNX <code>ClockCycles()</code> HARD-RT LOOP BUDGET</span>
-              <span id="budgetPipelineText" class="budget-pipeline">CAN-FD RX &rarr; CRC-16 Vote &rarr; MsgSendv() &rarr; AEB Law &rarr; Actuator</span>
+              <span class="budget-label">REAL-TIME BRAKING CYCLE TIME (<code class="mono">ClockCycles()</code>)</span>
+              <span id="budgetPipelineText" class="budget-pipeline">Sensor Read &rarr; Tamper Check &rarr; QNX Message &rarr; Brake Decision &rarr; Caliper</span>
             </div>
             <div class="budget-readout">
               <strong id="budgetMeasuredUs" class="mono">412 &mu;s</strong>
-              <span class="budget-cap">/ 1,000 &mu;s hard deadline</span>
-              <span id="budgetStatusTag" class="mini-pill mini-pass">0 MISSES</span>
+              <span class="budget-cap">/ 1,000 &mu;s safety limit</span>
+              <span id="budgetStatusTag" class="mini-pill mini-pass">0 MISSED CYCLES</span>
             </div>
           </div>
-          <div class="budget-track" aria-label="Real-time loop latency budget bar">
+          <div class="budget-track" aria-label="Real-time braking cycle latency bar">
             <div id="budgetBarFill" class="budget-fill"></div>
-            <div class="budget-deadline-tick" title="1,000 us Hard Deadline">
+            <div class="budget-deadline-tick" title="1,000 us Hard Safety Limit">
               <span>1,000 &mu;s</span>
             </div>
           </div>
@@ -110,21 +110,21 @@
       <!-- Right: Precision Engineering Control Console -->
       <aside class="control-card">
         <div class="card-head">
-          <span class="eyebrow">02 / RTOS &amp; FAULT INJECTION CONTROLS</span>
+          <span class="eyebrow">02 / OPERATING SYSTEM &amp; FAILURE TESTS</span>
           <button id="btnResetScenario" class="link-reset" type="button">Reset Defaults</button>
         </div>
 
         <!-- OS Scheduler Mode Toggle -->
         <div class="control-group">
-          <label class="control-label">Target OS Scheduler &amp; IPC Architecture</label>
+          <label class="control-label">Operating System Braking Mode</label>
           <div class="mode-switch" role="group" aria-label="OS Mode Switch">
             <button id="btnModeQnx" class="mode-btn active" type="button" data-mode="qnx">
-              <span class="mode-name">QNX 8.0 SCHED_FIFO 63</span>
-              <span class="mode-meta">Zero-Copy MsgSendv() • CPU0</span>
+              <span class="mode-name">QNX Real-Time Braking</span>
+              <span class="mode-meta">SCHED_FIFO 63 &bull; Zero-Copy MsgSendv()</span>
             </button>
             <button id="btnModeNonRt" class="mode-btn" type="button" data-mode="non-rt">
-              <span class="mode-name">Non-RT GPOS (CFS)</span>
-              <span class="mode-meta">Jittery Heap Copy • Unpinned</span>
+              <span class="mode-name">Standard OS (Delayed)</span>
+              <span class="mode-meta">Non-RT GPOS &bull; Shared CPU Queue</span>
             </button>
           </div>
         </div>
@@ -132,7 +132,7 @@
         <!-- Speed Slider -->
         <div class="control-group">
           <div class="slider-head">
-            <label for="speedSlider" class="control-label">Ego Vehicle Velocity</label>
+            <label for="speedSlider" class="control-label">Vehicle Speed</label>
             <span id="speedReadout" class="mono value-strong">110 km/h (30.6 m/s)</span>
           </div>
           <input id="speedSlider" class="range-input" type="range" min="30" max="130" step="1" value="110">
@@ -145,8 +145,8 @@
 
         <!-- Road Friction Selector -->
         <div class="control-group">
-          <label class="control-label">Road Surface Friction (&mu;)</label>
-          <div id="frictionGroup" class="friction-group" role="group" aria-label="Road Friction">
+          <label class="control-label">Road Grip (Dry / Wet / Ice)</label>
+          <div id="frictionGroup" class="friction-group" role="group" aria-label="Road Grip">
             <button class="friction-btn active" type="button" data-mu="0.9">Dry <span>0.90</span></button>
             <button class="friction-btn" type="button" data-mu="0.55">Wet <span>0.55</span></button>
             <button class="friction-btn" type="button" data-mu="0.25">Ice <span>0.25</span></button>
@@ -155,20 +155,20 @@
 
         <!-- 1-Click Fault Injection Buttons -->
         <div class="control-group">
-          <label class="control-label">1-Click Security &amp; Load Fault Injection</label>
+          <label class="control-label">Test Real-World Failures (1-Click)</label>
           <div class="fault-buttons">
             <button id="btnToggleSpoof" class="fault-btn" type="button" aria-pressed="false">
               <span class="fault-indicator"></span>
               <span class="fault-copy">
-                <strong>Inject CAN-FD Spoof</strong>
-                <small>Corrupt 0x120 CRC-16 + counter jump</small>
+                <strong>Simulate Fake Radar Attack</strong>
+                <small>Send spoofed clear-road signal (CAN-FD CRC-16)</small>
               </span>
             </button>
             <button id="btnToggleStorm" class="fault-btn" type="button" aria-pressed="false">
               <span class="fault-indicator"></span>
               <span class="fault-copy">
-                <strong>Inject Infotainment CPU Storm</strong>
-                <small>8-thread 98% IVI/OTA preemption burst</small>
+                <strong>Simulate Dashboard CPU Overload</strong>
+                <small>Heavy 98% infotainment &amp; software update storm</small>
               </span>
             </button>
           </div>
@@ -177,70 +177,70 @@
         <!-- 4 Real-Time KPI Tiles -->
         <div class="kpi-grid">
           <div class="kpi-tile">
-            <span class="kpi-label">Time-to-Collision</span>
+            <span class="kpi-label">Time Before Impact</span>
             <strong id="kpiTtc" class="kpi-val mono">1.42 s</strong>
             <span id="kpiHeadway" class="kpi-sub">Initial gap 27.61 m</span>
           </div>
           <div class="kpi-tile" id="kpiClearanceTile">
-            <span class="kpi-label">Stopping Clearance</span>
+            <span class="kpi-label">Stopping Margin</span>
             <strong id="kpiClearance" class="kpi-val mono">+4.82 m</strong>
             <span id="kpiOutcome" class="kpi-sub">SAFE STOP</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-label">AEB Deceleration</span>
+            <span class="kpi-label">Braking Force</span>
             <strong id="kpiDecel" class="kpi-val mono">8.83 m/s&sup2;</strong>
-            <span id="kpiPressure" class="kpi-sub">148.5 bar caliper</span>
+            <span id="kpiPressure" class="kpi-sub">148.5 bar pressure</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-label">ABS Yaw Rate</span>
+            <span class="kpi-label">Steering Stability</span>
             <strong id="kpiYaw" class="kpi-val mono">0.35 &deg;/s</strong>
-            <span id="kpiPreemptions" class="kpi-sub">0 preemptions</span>
+            <span id="kpiPreemptions" class="kpi-sub">0 OS interruptions</span>
           </div>
         </div>
       </aside>
     </section>
 
     <!-- Before vs After QNX 8.0 Determinism Proof Panel -->
-    <section class="card determinism-card" aria-label="Before vs After QNX 8.0 Determinism Proof">
+    <section class="card determinism-card" aria-label="Stopping Distance Proof: Standard OS vs QNX">
       <div class="section-head">
         <div>
-          <span class="eyebrow">03 / BEFORE VS AFTER QNX 8.0 DETERMINISM PROOF</span>
-          <h2>Hard Real-Time Margin: Why Microsecond IPC Saves Meters</h2>
+          <span class="eyebrow">03 / STOPPING DISTANCE PROOF: STANDARD OS VS. QNX</span>
+          <h2>Why Microsecond Response Time Saves Meters and Prevents Crashes</h2>
         </div>
-        <div id="deltaHighlightPill" class="delta-pill">+7.19 m clearance gained • 99.89% lower latency</div>
+        <div id="deltaHighlightPill" class="delta-pill">+7.19 m margin saved &bull; 99.89% faster response</div>
       </div>
 
       <div class="compare-grid">
         <div class="compare-box compare-nonrt">
           <div class="compare-top">
-            <span class="compare-tag tag-fail">BEFORE: Non-RT GPOS (CFS + Socket Copy)</span>
+            <span class="compare-tag tag-fail">BEFORE: Standard OS (Delayed &bull; Non-RT GPOS)</span>
             <strong id="cmpNonRtOutcome" class="mono text-crimson">COLLISION (-2.37 m)</strong>
           </div>
           <div class="compare-metrics">
-            <div><span>End-to-End Loop</span><strong id="cmpNonRtLatency" class="mono">370.0 ms</strong></div>
-            <div><span>Delay Travel</span><strong id="cmpNonRtDelayDist" class="mono">8.56 m</strong></div>
-            <div><span>Total Stop Dist</span><strong id="cmpNonRtStopDist" class="mono">29.98 m</strong></div>
-            <div><span>Impact Speed</span><strong id="cmpNonRtImpact" class="mono">23.3 km/h</strong></div>
+            <div><span>Response Delay</span><strong id="cmpNonRtLatency" class="mono">370.0 ms</strong></div>
+            <div><span>Lost Delay Distance</span><strong id="cmpNonRtDelayDist" class="mono">8.56 m</strong></div>
+            <div><span>Total Stop Distance</span><strong id="cmpNonRtStopDist" class="mono">29.98 m</strong></div>
+            <div><span>Crash Speed</span><strong id="cmpNonRtImpact" class="mono">23.3 km/h</strong></div>
           </div>
           <div class="envelope-bar-wrap">
-            <div class="envelope-label"><span>Non-RT Stopping Envelope</span><span id="cmpNonRtPct" class="mono">109% of gap</span></div>
+            <div class="envelope-label"><span>Standard OS Stopping Distance</span><span id="cmpNonRtPct" class="mono">109% of gap</span></div>
             <div class="envelope-track"><div id="cmpNonRtBar" class="envelope-fill fill-crimson"></div></div>
           </div>
         </div>
 
         <div class="compare-box compare-qnx">
           <div class="compare-top">
-            <span class="compare-tag tag-pass">AFTER: QNX 8.0 (SCHED_FIFO 63 + MsgSendv)</span>
+            <span class="compare-tag tag-pass">AFTER: QNX Real-Time Braking (SCHED_FIFO 63 + MsgSendv)</span>
             <strong id="cmpQnxOutcome" class="mono text-emerald">SAFE STOP (+4.82 m)</strong>
           </div>
           <div class="compare-metrics">
-            <div><span>End-to-End Loop</span><strong id="cmpQnxLatency" class="mono">412 &mu;s</strong></div>
-            <div><span>Delay Travel</span><strong id="cmpQnxDelayDist" class="mono">1.37 m</strong></div>
-            <div><span>Total Stop Dist</span><strong id="cmpQnxStopDist" class="mono">22.79 m</strong></div>
-            <div><span>Deadline Misses</span><strong id="cmpQnxMisses" class="mono">0 / 1 kHz</strong></div>
+            <div><span>Response Delay</span><strong id="cmpQnxLatency" class="mono">412 &mu;s</strong></div>
+            <div><span>Lost Delay Distance</span><strong id="cmpQnxDelayDist" class="mono">1.37 m</strong></div>
+            <div><span>Total Stop Distance</span><strong id="cmpQnxStopDist" class="mono">22.79 m</strong></div>
+            <div><span>Missed Checks</span><strong id="cmpQnxMisses" class="mono">0 / 1 kHz</strong></div>
           </div>
           <div class="envelope-bar-wrap">
-            <div class="envelope-label"><span>QNX 8.0 Stopping Envelope</span><span id="cmpQnxPct" class="mono">83% of gap</span></div>
+            <div class="envelope-label"><span>QNX Real-Time Stopping Distance</span><span id="cmpQnxPct" class="mono">83% of gap</span></div>
             <div class="envelope-track"><div id="cmpQnxBar" class="envelope-fill fill-emerald"></div></div>
           </div>
         </div>
@@ -253,18 +253,18 @@
       <article class="card">
         <div class="section-head">
           <div>
-            <span class="eyebrow">04 / CAN-FD BUS &amp; PLAUSIBILITY VOTER</span>
-            <h2>Live CAN-FD Frame Hex &amp; CRC-16/CCITT-FALSE Validator</h2>
+            <span class="eyebrow">04 / RADAR &amp; LIDAR TAMPER PROTECTION</span>
+            <h2>Live Sensor Security Check &amp; Automatic Backup (CAN-FD CRC-16)</h2>
           </div>
-          <span id="voterChannelBadge" class="mini-pill mini-pass">Primary Fused</span>
+          <span id="voterChannelBadge" class="mini-pill mini-pass">Radar + LiDAR Verified</span>
         </div>
 
         <div id="voterBanner" class="voter-banner">
           <div class="voter-row">
-            <div><span class="voter-k">77 GHz Radar</span><strong id="voterRadarVal" class="mono">27.43 m</strong></div>
-            <div><span class="voter-k">LiDAR Channel B</span><strong id="voterLidarVal" class="mono">27.40 m</strong></div>
-            <div><span class="voter-k">Voter Output</span><strong id="voterFusedVal" class="mono">27.41 m</strong></div>
-            <div><span class="voter-k">Voter Latency</span><strong id="voterLatencyVal" class="mono">14 &mu;s</strong></div>
+            <div><span class="voter-k">Front Radar</span><strong id="voterRadarVal" class="mono">27.43 m</strong></div>
+            <div><span class="voter-k">Backup LiDAR</span><strong id="voterLidarVal" class="mono">27.40 m</strong></div>
+            <div><span class="voter-k">Trusted Distance</span><strong id="voterFusedVal" class="mono">27.41 m</strong></div>
+            <div><span class="voter-k">Check Speed</span><strong id="voterLatencyVal" class="mono">14 &mu;s</strong></div>
           </div>
           <p id="voterReason" class="voter-reason"></p>
         </div>
@@ -274,11 +274,11 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Channel</th>
-                <th>Cnt</th>
-                <th>Payload (16B Hex)</th>
-                <th>CRC-16 Rx / Calc</th>
-                <th>Verdict</th>
+                <th>Sensor</th>
+                <th>Seq</th>
+                <th>Raw Packet (Hex)</th>
+                <th>CRC-16 Check</th>
+                <th>Decision</th>
               </tr>
             </thead>
             <tbody id="canTableBody"></tbody>
@@ -290,16 +290,16 @@
       <article class="card">
         <div class="section-head">
           <div>
-            <span class="eyebrow">05 / QNX PPS &amp; ISO 26262 ASIL-D AUDIT</span>
-            <h2><code>/pps/adas/aeb</code> Inspector &amp; Safety Gate (AEB001&ndash;AEB006)</h2>
+            <span class="eyebrow">05 / QNX TELEMETRY &amp; SAFETY CHECKLIST</span>
+            <h2>Live <code class="mono">/pps/adas/aeb</code> Stream &amp; ISO 26262 Checks</h2>
           </div>
-          <button id="btnCopyPps" class="btn-light-mini" type="button">Copy PPS</button>
+          <button id="btnCopyPps" class="btn-light-mini" type="button">Copy Telemetry</button>
         </div>
 
         <pre id="ppsOutput" class="pps-console"></pre>
 
         <div class="audit-list-head">
-          <span>ISO 26262-6 ASIL-D Rule Evaluation</span>
+          <span>Automotive Safety Checklist (ISO 26262 ASIL-D)</span>
           <strong id="auditScoreBadge" class="mono">100 / 100</strong>
         </div>
         <div id="isoRuleList" class="iso-rule-list"></div>
@@ -310,8 +310,8 @@
     <section class="card target-card">
       <div class="section-head">
         <div>
-          <span class="eyebrow">06 / AUTHENTIC QNX NEUTRINO 8.0 TARGET C11 &amp; ZERO-DEP CLI</span>
-          <h2>Production Target Primitives (<code>target-qnx8/</code>)</h2>
+          <span class="eyebrow">06 / FOR ENGINEERS: QNX NEUTRINO 8.0 C11 SOURCE &amp; CLI</span>
+          <h2>Production QNX 8.0 Target Code (<code class="mono">target-qnx8/</code>)</h2>
         </div>
         <div class="code-tabs" role="tablist">
           <button class="code-tab active" type="button" data-code="adas">brakewire_adas.c</button>

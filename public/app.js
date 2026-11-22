@@ -174,18 +174,43 @@ function selectScenario(id) {
   recomputeAndRender();
 }
 
+const HUMAN_BRAKE_SCENARIOS = {
+  'highway-cutin': {
+    shortTitle: 'Highway Cut-In',
+    summary: 'Highway Cut-In at 110 km/h: A slower car suddenly cuts into your lane with 1.42 s before impact. QNX locks the brakes in 412 us to stop safely with meters to spare.',
+  },
+  'pedestrian-night': {
+    shortTitle: 'Night Pedestrian',
+    summary: 'Night Crosswalk at 50 km/h: A pedestrian steps into an unlit crosswalk. Front radar and LiDAR lock on instantly so QNX stops the car short of the crosswalk.',
+  },
+  'canfd-spoof': {
+    shortTitle: 'Fake Radar Attack',
+    summary: 'Spoofed Radar Attack: A tampered radar packet tries to tell the car the road is empty. QNX rejects the fake packet in 18 us and brakes safely using the backup LiDAR.',
+  },
+  'priority-storm': {
+    shortTitle: 'CPU Overload Storm',
+    summary: 'Dashboard CPU Overload: Heavy infotainment and software updates spike CPU load to 98%. QNX isolates braking on a dedicated real-time core so the car stops cleanly instead of crashing.',
+  },
+  'wet-split-mu': {
+    shortTitle: 'Wet Uneven Road',
+    summary: 'Rain-Slicked Uneven Grip: One side of the road is wetter than the other. The 1,000 Hz QNX anti-lock braking loop keeps the car straight without spinning out.',
+  },
+};
+
 function buildScenarioTabs() {
   el.scenarioTabs.innerHTML = '';
   SCENARIOS.forEach((sc, idx) => {
+    const h = HUMAN_BRAKE_SCENARIOS[sc.id];
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'scenario-tab';
     btn.dataset.scenarioId = sc.id;
     btn.setAttribute('role', 'tab');
+    const gripLabel = sc.frictionMu >= 0.8 ? 'Dry' : sc.frictionMu >= 0.45 ? 'Wet' : 'Ice';
     btn.innerHTML = `
       <span class="scenario-tab-num">0${idx + 1} / ${sc.obstacleType.toUpperCase()}</span>
-      <span class="scenario-tab-name">${sc.shortTitle}</span>
-      <span class="scenario-tab-meta">${sc.egoSpeedKmh} km/h • &mu;=${sc.frictionMu.toFixed(2)}</span>
+      <span class="scenario-tab-name">${h ? h.shortTitle : sc.shortTitle}</span>
+      <span class="scenario-tab-meta">${sc.egoSpeedKmh} km/h &bull; ${gripLabel}</span>
     `;
     btn.addEventListener('click', () => selectScenario(sc.id));
     el.scenarioTabs.appendChild(btn);
@@ -216,8 +241,9 @@ function recomputeAndRender() {
 
 function renderHeaderAndTabs() {
   const { sim, audit } = state;
+  const h = HUMAN_BRAKE_SCENARIOS[sim.scenario.id];
   el.scenarioEnvBadge.textContent = sim.scenario.environment;
-  el.scenarioSubtitle.textContent = `${sim.scenario.title} — ${sim.scenario.subtitle}`;
+  el.scenarioSubtitle.textContent = h ? h.summary : `${sim.scenario.title} - ${sim.scenario.subtitle}`;
 
   document.querySelectorAll('.scenario-tab').forEach((btn) => {
     const active = btn.dataset.scenarioId === state.scenarioId;
@@ -228,10 +254,10 @@ function renderHeaderAndTabs() {
   const passed = audit.status === 'PASS';
   el.globalVerdictPill.className = `verdict-pill ${passed ? 'verdict-pass' : 'verdict-fail'}`;
   el.globalVerdictText.textContent = passed
-    ? `ASIL-D PASS (${audit.passedRules}/${audit.totalRules})`
-    : `SAFETY VIOLATION (${audit.failedRules} FAIL)`;
+    ? `ALL SAFETY CHECKS PASS (${audit.passedRules}/${audit.totalRules})`
+    : `SAFETY ALERT (${audit.failedRules} FAIL)`;
 
-  el.hudOsBadge.textContent = state.mode === 'qnx' ? 'QNX SCHED_FIFO 63' : 'NON-RT GPOS (CFS)';
+  el.hudOsBadge.textContent = state.mode === 'qnx' ? 'QNX Real-Time Braking' : 'Standard OS (Delayed)';
   el.hudOsBadge.className = `hud-badge ${state.mode === 'qnx' ? 'hud-badge-qnx' : 'hud-badge-nonrt'}`;
 }
 
@@ -263,7 +289,7 @@ function renderBudgetBar() {
     ? `${(a.totalLatencyUs / 1000).toFixed(1)} ms (${a.totalLatencyUs.toLocaleString()} µs)`
     : `${a.totalLatencyUs} µs`;
 
-  el.budgetStatusTag.textContent = overrun ? `OVERRUN (${a.deadlineMisses} MISSES)` : '0 MISSES • WITHIN 1 kHz';
+  el.budgetStatusTag.textContent = overrun ? `LATE (${a.deadlineMisses} MISSED)` : '0 MISSED • ON TIME';
   el.budgetStatusTag.className = `mini-pill ${overrun ? 'mini-fail' : 'mini-pass'}`;
 
   const pct = Math.min(100, Math.max(4, (a.totalLatencyUs / a.deadlineBudgetUs) * 100));
@@ -272,11 +298,11 @@ function renderBudgetBar() {
 
   const fmt = (us) => (us >= 2000 ? `${(us / 1000).toFixed(1)} ms` : `${us} µs`);
   const stages = [
-    ['CAN-FD RX', fmt(b.canfdRxUs)],
-    ['CRC-16 / Vote', fmt(b.crcVoteUs)],
-    ['MsgSendv IPC', fmt(b.msgSendvUs)],
-    ['AEB Fusion', fmt(b.fusionLawUs)],
-    ['Caliper Cmd', fmt(b.actuatorCmdUs)],
+    ['Sensor Read', fmt(b.canfdRxUs)],
+    ['Tamper Check', fmt(b.crcVoteUs)],
+    ['QNX Message', fmt(b.msgSendvUs)],
+    ['Brake Decision', fmt(b.fusionLawUs)],
+    ['Brake Caliper', fmt(b.actuatorCmdUs)],
   ];
   el.stageBreakdownStrip.innerHTML = stages
     .map(([label, val]) => `<div class="stage-chip"><span>${label}</span><strong>${val}</strong></div>`)
@@ -286,22 +312,22 @@ function renderBudgetBar() {
 function renderKpis() {
   const a = state.sim.active;
   el.kpiTtc.textContent = `${a.ttcS.toFixed(2)} s`;
-  el.kpiHeadway.textContent = `Initial gap ${a.initialDistanceM.toFixed(2)} m`;
+  el.kpiHeadway.textContent = `Starting gap ${a.initialDistanceM.toFixed(2)} m`;
 
   el.kpiClearance.textContent = `${a.clearanceM >= 0 ? '+' : ''}${a.clearanceM.toFixed(2)} m`;
-  el.kpiOutcome.textContent = a.collision ? `COLLISION @ ${a.impactSpeedKmh} km/h` : 'SAFE CLEARANCE';
+  el.kpiOutcome.textContent = a.collision ? `CRASH @ ${a.impactSpeedKmh} km/h` : 'SAFE STOP';
   el.kpiClearanceTile.className = `kpi-tile ${a.collision ? 'tile-danger' : 'tile-safe'}`;
 
   el.kpiDecel.textContent = `${a.maxDecelMps2.toFixed(2)} m/s²`;
-  el.kpiPressure.textContent = `${a.hydraulicBar.toFixed(1)} bar caliper`;
+  el.kpiPressure.textContent = `${a.hydraulicBar.toFixed(1)} bar pressure`;
 
   el.kpiYaw.textContent = `${a.yawRateDegS.toFixed(2)} °/s`;
-  el.kpiPreemptions.textContent = `${a.preemptionEvents} preemptions @ ${a.cpuLoadPct}% CPU`;
+  el.kpiPreemptions.textContent = `${a.preemptionEvents} OS delays @ ${a.cpuLoadPct}% CPU`;
 }
 
 function renderDeterminismCompare() {
   const { qnx, nonRt, comparison, config } = state.sim;
-  el.deltaHighlightPill.textContent = `+${comparison.clearanceGainM.toFixed(2)} m margin saved • ${comparison.latencyReductionPct.toFixed(2)}% latency cut`;
+  el.deltaHighlightPill.textContent = `+${comparison.clearanceGainM.toFixed(2)} m margin saved • ${comparison.latencyReductionPct.toFixed(2)}% faster braking`;
 
   el.cmpNonRtOutcome.textContent = nonRt.collision
     ? `COLLISION (${nonRt.clearanceM.toFixed(2)} m)`
@@ -331,7 +357,7 @@ function renderDeterminismCompare() {
 
 function renderCanFdAndVoter() {
   const { frames, voter } = state.sim.canfd;
-  el.voterChannelBadge.textContent = voter.activeChannel === 0 ? 'Primary Fused' : voter.activeChannel === 1 ? 'Redundant LiDAR Ch-B' : 'Hydraulic Backup';
+  el.voterChannelBadge.textContent = voter.activeChannel === 0 ? 'Radar + LiDAR Verified' : voter.activeChannel === 1 ? 'Backup LiDAR Active' : 'Hydraulic Backup';
   el.voterChannelBadge.className = `mini-pill ${voter.activeChannel === 0 ? 'mini-pass' : voter.activeChannel === 1 ? 'mini-warn' : 'mini-fail'}`;
 
   el.voterRadarVal.textContent = `${voter.radarRangeM.toFixed(2)} m${voter.radarValid ? '' : ' (FAULT)'}`;
